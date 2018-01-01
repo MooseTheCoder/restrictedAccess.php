@@ -9,7 +9,7 @@
 
 //Database connection function, not used for OTK
 function db(){
-	return mysqli_connect("host","user","password","database");
+	return mysqli_connect("localhost","root","password","");
 }
 
 /*
@@ -45,6 +45,11 @@ function require_otk(){
 	The user table must also be modified to have a "key" column
 	
 */
+
+function make_user_key_noDb($user,$key){
+	return sha1($user.$key);
+}
+
 function make_user_key($user){
 	$k = get_active_key();
 	return sha1($user.$k['key']);
@@ -52,20 +57,20 @@ function make_user_key($user){
 
 function get_active_key(){
 	$db = db();
-	$ak = mysqli_query($db,"SELECT * FROM access WHERE active = 1");
-	mysqli_close();
+	$ak = mysqli_query($db,"SELECT * FROM access WHERE active=1");
+	mysqli_close($db);
 	return mysqli_fetch_assoc($ak);
 }
 //userID is the id of the user in the database
 function match_user_key($userID){
 	$userTable = "user"; //This should be user users table
 	$db = db();
-	$u = mysqli_query($db,"SELECT * FROM $user WHERE id=$userID");
+	$u = mysqli_fetch_array(mysqli_query($db,"SELECT * FROM $userTable WHERE id=$userID"));
 	$k = get_active_key();
 	//Make the key
-	$key = make_user_key($u['username'])
+	$key = make_user_key($u['username']);
 	if($u['key'] != $key){
-		return false
+		return false;
 	}
 	return true;
 }
